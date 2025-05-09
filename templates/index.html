@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Spotify Web Playback SDK Quick Start</title>
+    <script
+      src="https://code.jquery.com/jquery-3.2.1.min.js"
+      integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+      crossorigin="anonymous">
+    </script>
+    <script src="https://sdk.scdn.co/spotify-player.js"></script>
+    <script>
+        async function getToken() {
+        try {
+            const response = await fetch('/callback');
+
+            if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const text = await response.text();
+            return text;
+            } 
+            catch (error) {
+            console.error("Fetch error:", error);
+            throw error;
+            }
+        }
+        
+        window.onSpotifyWebPlaybackSDKReady = () => {
+            
+            
+            const player = new Spotify.Player({
+                name: 'Spotiframe',
+                getOAuthToken: async cb => { 
+                    let token = await getToken().then(data => {
+                        cb(data)
+                    });
+                },
+                volume: 0.5
+            });
+                
+
+            // Ready
+            player.addListener('ready', ({ device_id }) => {
+                console.log('Ready with Device ID', device_id);
+            });
+
+            // Not Ready
+            player.addListener('not_ready', ({ device_id }) => {
+                console.log('Device ID has gone offline', device_id);
+            });
+
+            player.addListener('initialization_error', ({ message }) => {
+                console.error(message);
+            });
+
+            player.addListener('authentication_error', ({ message }) => {
+                console.error(message);               
+            });
+
+            player.addListener('account_error', ({ message }) => {
+                console.error(message);
+            });
+
+            // Playback status updates
+            player.on('player_state_changed', ({
+                track_window: { current_track }
+            }) => {                
+                
+                let data = new FormData()
+                data.append("img", current_track.album.images[0].url)
+                data.append("artist", current_track.artists[0].name)
+                data.append("album", current_track.album.name)
+
+                fetch('/screen', {
+                    "method": "POST",
+                    "body": data,
+                })
+                                     
+                $('#current-album-img').attr('src', current_track.album.images[0].url);
+                $('#current-artist-name').text(current_track.artists[0].name);
+                $('#current-track-name').text(current_track.name);               
+
+            });
+
+            // Playback error
+            player.on('playback_error', ({ message }) => {                              
+                console.error('Failed to perform playback', message);
+            });
+
+            player.connect();
+        }
+    </script>
+</head>
+<body style="background-color: black">
+
+    <div style="background-color: #222222; height: 448px; width: 600px">
+        <img id="current-album-img" style="height: 448px; width: 448px">
+        <h2 id="current-track-name" style="color: white; font-size: 35px; margin-top: -75px; margin-left: 25px; text-shadow: 1px 1px 0 #000, -1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000;"></h2>
+        <h3 id="current-artist-name" style="color: white; font-size: 25px; margin-top: -30px; margin-left: 25px; text-shadow: 1px 1px 0 #000, -1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000;"></h3>
+    </div>
+
+</body>
+</html>
