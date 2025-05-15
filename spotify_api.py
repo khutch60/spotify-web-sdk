@@ -46,7 +46,6 @@ def refresh_token(refresh_token, headers):
         "refresh_token": refresh_token
     }
 
-
     response = requests.post(url=url, headers=headers, params=params)
     response = response.json()
     return response['access_token']

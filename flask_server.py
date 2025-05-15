@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request
 from spotify_api import get_access_token, refresh_token
 from screen import update_screen
 import os
@@ -6,7 +6,6 @@ import ast
 import webbrowser
 import threading
 import time
-
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get("SECRET_KEY")
@@ -38,26 +37,26 @@ def open_browser():
     webbrowser.open_new('http://127.0.0.1:5000')
 
 
-@app.route("/", methods=["GET", "POST"])
+@app.route("/")
 def home():
 
     return render_template("index.html")
 
 @app.route("/screen", methods=["POST"])
 def update():    
-    if request.method == "POST":
-        new_dict = request.form.to_dict()
-                    
-        with open("data.txt", "r") as playback_data:
-            data_dict = ast.literal_eval(playback_data.read())
-            img_url = data_dict['img']
-            playback_data.close()           
+    
+    new_dict = request.form.to_dict()
+                
+    with open("data.txt", "r") as playback_data:
+        data_dict = ast.literal_eval(playback_data.read())
+        img_url = data_dict['img']
+        playback_data.close()           
 
-        if new_dict["img"] != img_url:
-            update_screen(new_dict)            
-            with open("data.txt", "w") as playback_data:            
-                playback_data.write(str(new_dict))
-                playback_data.close()
+    if new_dict["img"] != img_url:
+        update_screen(new_dict)            
+        with open("data.txt", "w") as playback_data:            
+            playback_data.write(str(new_dict))
+            playback_data.close()
             
     return ('', 200)
 
