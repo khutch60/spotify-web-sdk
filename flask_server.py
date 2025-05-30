@@ -10,6 +10,7 @@ import time
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get("SECRET_KEY")
 
+
 def get_token_data():
     get_data = True
     while get_data:        
@@ -18,13 +19,7 @@ def get_token_data():
             get_data = False        
     return token_request
 
-spotify_bot = True
-while spotify_bot:
-    try:
-        token_request = get_token_data()
-        spotify_bot = False
-    except:
-        time.sleep(2)
+token_request = get_token_data()
 
 token_request[0]['refresh'] = False
 
